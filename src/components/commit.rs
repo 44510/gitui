@@ -396,9 +396,23 @@ impl CommitComponent {
 							&self.repo.borrow(),
 							"commit.template",
 						)
+						.map_err(|e| {
+							log::error!(
+								"load git-config failed: {}",
+								e
+							);
+							e
+						})
 						.ok()
 						.flatten()
-						.and_then(|path| read_to_string(path).ok());
+						.and_then(|path| {
+							read_to_string(path)
+								.map_err(|e| {
+									log::error!("read commit.template failed: {}", e);
+									e
+								})
+								.ok()
+						});
 
 						if self.is_empty() {
 							if let Some(s) = &self.commit_template {
